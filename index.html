@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>Luxury Cars Shop</title>
 
-<!-- PayPal SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID_HERE&currency=USD"></script>
+<!-- PayPal SDK (sandbox client ID) -->
+<script src="https://www.paypal.com/sdk/js?client-id=AT5OJRTj_FvYP4dk5tml6Mvy1zMlTXr0IbWqqPvtxek0ZjDJfIdmw6T0-h_xWS5sHMjFZ2jkwgUUsxq8&currency=USD"></script>
 
 <style>
     body {
@@ -19,7 +19,7 @@
     }
 
     .car-list {
-        max-width: 600px;
+        max-width: 700px;
     }
 
     .car-item {
@@ -33,6 +33,21 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
+    .car-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .car-name {
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .car-price {
+        color: #555;
+        font-size: 14px;
+    }
+
     .buy-btn {
         padding: 8px 14px;
         background: black;
@@ -40,17 +55,24 @@
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease, background 0.2s ease;
     }
 
     .buy-btn:hover {
         transform: scale(1.05);
+        background: #333;
     }
 
     .checkmark {
         font-size: 22px;
         color: green;
         font-weight: bold;
+        animation: pop 0.3s ease;
+    }
+
+    @keyframes pop {
+        0% { transform: scale(0.3); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
     }
 
     /* Popup */
@@ -65,6 +87,7 @@
         opacity: 0;
         transform: translateY(-10px);
         transition: opacity 0.4s ease, transform 0.4s ease;
+        z-index: 1000;
     }
 
     #popup.show {
@@ -72,11 +95,15 @@
         transform: translateY(0);
     }
 
-    /* PayPal container */
+    /* PayPal area */
     #paypal-area {
         margin-top: 30px;
-        display: none;
         max-width: 400px;
+        padding: 15px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        display: none;
     }
 
     #selected-car {
@@ -91,22 +118,34 @@
 
 <div class="car-list">
     <div class="car-item">
-        <span>Ferrari F8 Tributo — $280,000</span>
+        <div class="car-info">
+            <span class="car-name">Ferrari F8 Tributo</span>
+            <span class="car-price">$280,000</span>
+        </div>
         <button class="buy-btn" onclick="buy(this, 'Ferrari F8 Tributo', 280000)">Buy it</button>
     </div>
 
     <div class="car-item">
-        <span>Lamborghini Aventador — $450,000</span>
+        <div class="car-info">
+            <span class="car-name">Lamborghini Aventador</span>
+            <span class="car-price">$450,000</span>
+        </div>
         <button class="buy-btn" onclick="buy(this, 'Lamborghini Aventador', 450000)">Buy it</button>
     </div>
 
     <div class="car-item">
-        <span>Rolls-Royce Phantom — $550,000</span>
+        <div class="car-info">
+            <span class="car-name">Rolls-Royce Phantom</span>
+            <span class="car-price">$550,000</span>
+        </div>
         <button class="buy-btn" onclick="buy(this, 'Rolls-Royce Phantom', 550000)">Buy it</button>
     </div>
 
     <div class="car-item">
-        <span>Bentley Continental GT — $240,000</span>
+        <div class="car-info">
+            <span class="car-name">Bentley Continental GT</span>
+            <span class="car-price">$240,000</span>
+        </div>
         <button class="buy-btn" onclick="buy(this, 'Bentley Continental GT', 240000)">Buy it</button>
     </div>
 </div>
@@ -122,37 +161,58 @@
 
 <script>
 let currentPrice = 0;
+let currentCar = '';
+let paypalRendered = false;
 
-// Buy button logic
+function showPopup(message) {
+    const popup = document.getElementById('popup');
+    popup.textContent = message;
+    popup.classList.add('show');
+    setTimeout(() => popup.classList.remove('show'), 2000);
+}
+
 function buy(button, carName, price) {
     // Replace button with checkmark
     button.outerHTML = '<span class="checkmark">✔️</span>';
 
     // Show popup
-    const popup = document.getElementById('popup');
-    popup.textContent = `You selected: ${carName}`;
-    popup.classList.add('show');
-    setTimeout(() => popup.classList.remove('show'), 2000);
+    showPopup(`You selected: ${carName}`);
 
-    // Show PayPal checkout
+    // Set current car and price
     currentPrice = price;
-    document.getElementById('selected-car').textContent =
+    currentCar = carName;
+
+    // Show PayPal area
+    const paypalArea = document.getElementById('paypal-area');
+    const selectedCar = document.getElementById('selected-car');
+    paypalArea.style.display = 'block';
+    selectedCar.textContent =
         `Complete purchase with PayPal: ${carName} — $${price.toLocaleString()}`;
-    document.getElementById('paypal-area').style.display = 'block';
+
+    // Clear previous button if re-rendering
+    const container = document.getElementById('paypal-button-container');
+    container.innerHTML = '';
 
     // Render PayPal button
     paypal.Buttons({
         createOrder: function(data, actions) {
             return actions.order.create({
                 purchase_units: [{
-                    amount: { value: price.toString() }
+                    description: currentCar,
+                    amount: {
+                        value: currentPrice.toString()
+                    }
                 }]
             });
         },
         onApprove: function(data, actions) {
             return actions.order.capture().then(function(details) {
-                alert('Payment completed by ' + details.payer.name.given_name);
+                showPopup('Payment completed by ' + details.payer.name.given_name);
             });
+        },
+        onError: function(err) {
+            console.error(err);
+            showPopup('There was an error with PayPal.');
         }
     }).render('#paypal-button-container');
 }
