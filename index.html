@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Luxury Cars</title>
+<title>Luxury Cars Shop</title>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID_HERE&currency=USD"></script>
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -15,7 +19,7 @@
     }
 
     .car-list {
-        max-width: 500px;
+        max-width: 600px;
     }
 
     .car-item {
@@ -36,11 +40,11 @@
         border: none;
         border-radius: 6px;
         cursor: pointer;
+        transition: transform 0.2s ease;
     }
 
-    .buy-btn:disabled {
-        background: #ccc;
-        cursor: default;
+    .buy-btn:hover {
+        transform: scale(1.05);
     }
 
     .checkmark {
@@ -59,11 +63,25 @@
         padding: 15px 20px;
         border-radius: 8px;
         opacity: 0;
-        transition: opacity 0.4s ease;
+        transform: translateY(-10px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
     }
 
     #popup.show {
         opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* PayPal container */
+    #paypal-area {
+        margin-top: 30px;
+        display: none;
+        max-width: 400px;
+    }
+
+    #selected-car {
+        font-weight: bold;
+        margin-bottom: 10px;
     }
 </style>
 </head>
@@ -73,42 +91,70 @@
 
 <div class="car-list">
     <div class="car-item">
-        <span>Ferrari F8 Tributo</span>
-        <button class="buy-btn" onclick="buy(this, 'Ferrari F8 Tributo')">Buy it</button>
+        <span>Ferrari F8 Tributo — $280,000</span>
+        <button class="buy-btn" onclick="buy(this, 'Ferrari F8 Tributo', 280000)">Buy it</button>
     </div>
 
     <div class="car-item">
-        <span>Lamborghini Aventador</span>
-        <button class="buy-btn" onclick="buy(this, 'Lamborghini Aventador')">Buy it</button>
+        <span>Lamborghini Aventador — $450,000</span>
+        <button class="buy-btn" onclick="buy(this, 'Lamborghini Aventador', 450000)">Buy it</button>
     </div>
 
     <div class="car-item">
-        <span>Rolls-Royce Phantom</span>
-        <button class="buy-btn" onclick="buy(this, 'Rolls-Royce Phantom')">Buy it</button>
+        <span>Rolls-Royce Phantom — $550,000</span>
+        <button class="buy-btn" onclick="buy(this, 'Rolls-Royce Phantom', 550000)">Buy it</button>
     </div>
 
     <div class="car-item">
-        <span>Bentley Continental GT</span>
-        <button class="buy-btn" onclick="buy(this, 'Bentley Continental GT')">Buy it</button>
+        <span>Bentley Continental GT — $240,000</span>
+        <button class="buy-btn" onclick="buy(this, 'Bentley Continental GT', 240000)">Buy it</button>
     </div>
 </div>
 
+<!-- Popup -->
 <div id="popup"></div>
 
+<!-- PayPal Checkout Area -->
+<div id="paypal-area">
+    <div id="selected-car"></div>
+    <div id="paypal-button-container"></div>
+</div>
+
 <script>
-function buy(button, carName) {
+let currentPrice = 0;
+
+// Buy button logic
+function buy(button, carName, price) {
     // Replace button with checkmark
     button.outerHTML = '<span class="checkmark">✔️</span>';
 
     // Show popup
     const popup = document.getElementById('popup');
-    popup.textContent = `You purchased: ${carName}`;
+    popup.textContent = `You selected: ${carName}`;
     popup.classList.add('show');
+    setTimeout(() => popup.classList.remove('show'), 2000);
 
-    // Hide popup after 2 seconds
-    setTimeout(() => {
-        popup.classList.remove('show');
-    }, 2000);
+    // Show PayPal checkout
+    currentPrice = price;
+    document.getElementById('selected-car').textContent =
+        `Complete purchase with PayPal: ${carName} — $${price.toLocaleString()}`;
+    document.getElementById('paypal-area').style.display = 'block';
+
+    // Render PayPal button
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: { value: price.toString() }
+                }]
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                alert('Payment completed by ' + details.payer.name.given_name);
+            });
+        }
+    }).render('#paypal-button-container');
 }
 </script>
 
