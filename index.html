@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Luxury Cars</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background: #f5f5f5;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    .car-list {
+        max-width: 500px;
+    }
+
+    .car-item {
+        background: white;
+        padding: 15px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .buy-btn {
+        padding: 8px 14px;
+        background: black;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .buy-btn:disabled {
+        background: #ccc;
+        cursor: default;
+    }
+
+    .checkmark {
+        font-size: 22px;
+        color: green;
+        font-weight: bold;
+    }
+
+    /* Popup */
+    #popup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #222;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    #popup.show {
+        opacity: 1;
+    }
+</style>
+</head>
+<body>
+
+<h1>Luxury Cars</h1>
+
+<div class="car-list">
+    <div class="car-item">
+        <span>Ferrari F8 Tributo</span>
+        <button class="buy-btn" onclick="buy(this, 'Ferrari F8 Tributo')">Buy it</button>
+    </div>
+
+    <div class="car-item">
+        <span>Lamborghini Aventador</span>
+        <button class="buy-btn" onclick="buy(this, 'Lamborghini Aventador')">Buy it</button>
+    </div>
+
+    <div class="car-item">
+        <span>Rolls-Royce Phantom</span>
+        <button class="buy-btn" onclick="buy(this, 'Rolls-Royce Phantom')">Buy it</button>
+    </div>
+
+    <div class="car-item">
+        <span>Bentley Continental GT</span>
+        <button class="buy-btn" onclick="buy(this, 'Bentley Continental GT')">Buy it</button>
+    </div>
+</div>
+
+<div id="popup"></div>
+
+<script>
+function buy(button, carName) {
+    // Replace button with checkmark
+    button.outerHTML = '<span class="checkmark">✔️</span>';
+
+    // Show popup
+    const popup = document.getElementById('popup');
+    popup.textContent = `You purchased: ${carName}`;
+    popup.classList.add('show');
+
+    // Hide popup after 2 seconds
+    setTimeout(() => {
+        popup.classList.remove('show');
+    }, 2000);
+}
+</script>
+
+</body>
+</html>
