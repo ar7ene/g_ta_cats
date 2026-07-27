@@ -184,7 +184,7 @@ function buy(button, carName, price) {
 
     paypal.Buttons({
         createOrder: function(data, actions) {
-            return fetch("https://your-backend.onrender.com/create-order", {
+            return fetch("https://g-ta-cats.onrender.com/create-order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ price: currentPrice, car: currentCar })
@@ -194,7 +194,7 @@ function buy(button, carName, price) {
         },
 
         onApprove: function(data, actions) {
-            return fetch("https://your-backend.onrender.com/capture-order", {
+            return fetch("https://g-ta-cats.onrender.com/capture-order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ orderID: data.orderID })
